@@ -47,16 +47,32 @@ const Item = styled.div`
 	}
 `;
 
+const NoItems = styled.div`
+	height: 100%;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #6c6c80;
+	font-size: 22px;
+`;
+
 const Rooms: React.FC<RoomParams> = ({ data, onItemClick }) => {
 	return (
 		<div>
 			<Container>
-				{data.map((room, index) => (
-					<Item key={index} onClick={() => onItemClick(room)}>
-						<strong>{room.name}</strong>
-						<span>{`${room.people.length} Online`}</span>
-					</Item>
-				))}
+				{data.length > 0 ? (
+					data.map((room, index) => (
+						<Item key={index} onClick={() => onItemClick(room)}>
+							<strong>{room.name}</strong>
+							<span>{`${room.people.length} Online`}</span>
+						</Item>
+					))
+				) : (
+					<NoItems>
+						<strong>No rooms created yet.</strong>
+					</NoItems>
+				)}
 			</Container>
 		</div>
 	);
