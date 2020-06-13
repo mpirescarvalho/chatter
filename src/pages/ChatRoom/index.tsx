@@ -50,7 +50,10 @@ const ChatRoom = () => {
 
 	useEffect(() => {
 		const match = search.match(/nickname=(.+)/);
-		if (match) setNickname(match[1]);
+		let nick;
+		if (match) nick = match[1];
+		else nick = prompt("Type your nickname");
+		if (nick) setNickname(nick);
 	}, [search]);
 
 	useEffect(() => {
@@ -58,6 +61,7 @@ const ChatRoom = () => {
 			api
 				.get(`/rooms/${room_id}`)
 				.then((response) => {
+					console.log(response.data);
 					setRoom(response.data);
 					setLoading(false);
 				})
