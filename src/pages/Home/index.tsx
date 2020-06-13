@@ -5,6 +5,8 @@ import { useHistory } from "react-router-dom";
 
 import Rooms from "../../components/Rooms";
 
+import api from "../../services/api";
+
 const StyledHome = styled.div`
 	width: 100vw;
 	height: 100vh;
@@ -117,8 +119,14 @@ const Home = () => {
 	const history = useHistory();
 
 	useEffect(() => {
+		api.get("/rooms").then((response) => setRooms(response.data));
+	}, []);
+
+	useEffect(() => {
 		const socket = io("http://localhost:4001");
-		socket.on("all_rooms", setRooms);
+
+		// socket.on("all_rooms", setRooms);
+
 		return () => {
 			socket.disconnect();
 		};
@@ -131,8 +139,6 @@ const Home = () => {
 		return () => clearTimeout(id);
 	}, [errors]);
 
-	// socket.emit('message','this is demo..');
-
 	function handleRoomClick(room: Room) {
 		if (!nickname) {
 			setErrors({ ...errors, nickname: true });
@@ -140,7 +146,7 @@ const Home = () => {
 		}
 		history.push({
 			pathname: `/${room.id}`,
-			search: `nickname=${nickname}`
+			search: `nickname=${nickname}`,
 		});
 	}
 
