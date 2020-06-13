@@ -138,7 +138,10 @@ const Home = () => {
 			setErrors({ ...errors, nickname: true });
 			return;
 		}
-		history.push(`/${room.id}`);
+		history.push({
+			pathname: `/${room.id}`,
+			search: `nickname=${nickname}`
+		});
 	}
 
 	return (
