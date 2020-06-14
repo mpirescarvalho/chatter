@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useLocation, useHistory } from "react-router-dom";
 import { FiArrowLeft, FiSend } from "react-icons/fi";
 import styled from "styled-components";
@@ -229,16 +229,29 @@ const ChatRoom = () => {
 	const { search } = useLocation();
 	const history = useHistory();
 
+	// const onNewMessage = useCallback(
+	// (message: Message) => {
+	// console.log("runing 2");
+	// const _messages = [...messages];
+	// _messages.push(message);
+	// setMessages(_messages);
+	// console.log(messages);
+	// },
+	// [messages]
+	// );
+
 	useEffect(() => {
 		if (room) {
+			let changed = false;
 			let _peopleColors = { ...peopleColors };
 			room.people.forEach((person) => {
 				if (!_peopleColors[`${person.id}`]) {
 					_peopleColors[`${person.id}`] =
 						colors[Math.floor(Math.random() * colors.length)];
+					changed = true;
 				}
 			});
-			setPeopleColors(_peopleColors);
+			if (changed) setPeopleColors(_peopleColors);
 		}
 	}, [room, peopleColors]);
 
@@ -279,9 +292,12 @@ const ChatRoom = () => {
 	useEffect(() => {
 		const socket = io("http://localhost:4001");
 
+		console.log("connecting to server");
+
 		socket.on("connect", () => setMyID(socket.id));
 
 		socket.on(`${room_id}-changed`, setRoom);
+		// socket.on(`${room_id}-new_message`, onNewMessage);
 
 		// socket.emit(`${room_id}-enter_room`, nickname);
 
@@ -293,7 +309,7 @@ const ChatRoom = () => {
 		return () => {
 			socket.disconnect();
 		};
-	}, []);
+	}, [room_id]);
 
 	function getSenderNicknameByID(id: string) {
 		if (room) {
