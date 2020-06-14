@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, FormEvent } from "react";
 import { useParams, useLocation, useHistory } from "react-router-dom";
 import { FiArrowLeft, FiSend } from "react-icons/fi";
 import styled from "styled-components";
@@ -138,6 +138,7 @@ const MessageSender = styled.div<MessageSenderProps>`
 	color: ${(props) => props.color};
 	border-bottom: 1px solid #ddd;
 	margin-bottom: 5px;
+	font-size: 14px;
 `;
 
 const MessageContent = styled.div`
@@ -225,20 +226,11 @@ const ChatRoom = () => {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [myID, setMyID] = useState<String>();
 
+	const [myMessage, setMyMessage] = useState("");
+
 	const { room_id } = useParams();
 	const { search } = useLocation();
 	const history = useHistory();
-
-	// const onNewMessage = useCallback(
-	// (message: Message) => {
-	// console.log("runing 2");
-	// const _messages = [...messages];
-	// _messages.push(message);
-	// setMessages(_messages);
-	// console.log(messages);
-	// },
-	// [messages]
-	// );
 
 	useEffect(() => {
 		if (room) {
@@ -297,7 +289,13 @@ const ChatRoom = () => {
 		socket.on("connect", () => setMyID(socket.id));
 
 		socket.on(`${room_id}-changed`, setRoom);
-		// socket.on(`${room_id}-new_message`, onNewMessage);
+		socket.on(`${room_id}-new_message`, (message: Message) => {
+			setMessages((oldMessages) => {
+				const _messages = [...oldMessages];
+				_messages.push(message);
+				return _messages;
+			});
+		});
 
 		// socket.emit(`${room_id}-enter_room`, nickname);
 
@@ -320,6 +318,18 @@ const ChatRoom = () => {
 
 	function handleBackClick() {
 		history.push("/");
+	}
+
+	async function handleFormSubmit(event: FormEvent) {
+		event.preventDefault();
+		const _message = myMessage;
+		setMyMessage("");
+		if (_message)
+			await api.post("/messages", {
+				sender_id: myID,
+				message: _message,
+				room_id,
+			});
 	}
 
 	if (loading) return <h1>Loading...</h1>;
@@ -346,8 +356,8 @@ const ChatRoom = () => {
 					</PeopleContainer>
 					<Chat>
 						<ContainerMessages>
-							{messages.map((message) => (
-								<ContainerMessage owner={message.sender_id === myID}>
+							{messages.map((message, index) => (
+								<ContainerMessage key={index} owner={message.sender_id === myID}>
 									<MessageBox>
 										<MessageSender color={peopleColors[`${message.sender_id}`]}>
 											<strong>{getSenderNicknameByID(message.sender_id)}</strong>
@@ -357,8 +367,15 @@ const ChatRoom = () => {
 								</ContainerMessage>
 							))}
 						</ContainerMessages>
-						<ContainerInput>
-							<Input />
+						<ContainerInput onSubmit={handleFormSubmit}>
+							<Input
+								type="text"
+								name="myMessage"
+								id="myMessage"
+								value={myMessage}
+								placeholder="Type your message..."
+								onChange={(event) => setMyMessage(event.target.value)}
+							/>
 							<Submit type="submit">
 								<FiSend />
 							</Submit>
