@@ -1,4 +1,4 @@
-import React, { useEffect, useState, FormEvent } from "react";
+import React, { useEffect, useState, useCallback, FormEvent } from "react";
 import { useParams, useLocation, useHistory } from "react-router-dom";
 import { FiArrowLeft, FiSend } from "react-icons/fi";
 import styled from "styled-components";
@@ -236,6 +236,16 @@ const ChatRoom = () => {
 	const { search } = useLocation();
 	const history = useHistory();
 
+	const getSenderNicknameById = useCallback(
+		(id: string) => {
+			if (room) {
+				const _person = room.people.find((pers) => pers.id === id);
+				if (_person) return _person.nickname;
+			}
+		},
+		[room]
+	);
+
 	//Fill people colors
 	useEffect(() => {
 		if (room) {
@@ -257,7 +267,7 @@ const ChatRoom = () => {
 		let changed = false;
 		const _messages = messages.map((message) => {
 			if (!message.nickname) {
-				const _messageNickname = getSenderNicknameByID(message.sender_id);
+				const _messageNickname = getSenderNicknameById(message.sender_id);
 				if (_messageNickname) {
 					changed = true;
 					message.nickname = _messageNickname;
@@ -266,7 +276,7 @@ const ChatRoom = () => {
 			return message;
 		});
 		if (changed) setMessages(_messages);
-	}, [messages, getSenderNicknameByID]);
+	}, [messages, getSenderNicknameById]);
 
 	useEffect(() => {
 		const match = search.match(/nickname=(.+)/);
@@ -305,8 +315,6 @@ const ChatRoom = () => {
 	useEffect(() => {
 		const socket = io("http://localhost:4001");
 
-		console.log("connecting to server");
-
 		socket.on("connect", () => setMyID(socket.id));
 
 		socket.on(`${room_id}-changed`, setRoom);
@@ -318,24 +326,10 @@ const ChatRoom = () => {
 			});
 		});
 
-		// socket.emit(`${room_id}-enter_room`, nickname);
-
-		// socket.on(`${room_id}-info`, (room_info: Room) => {
-		// 	setRoom(room_info);
-		// 	setLoading(false);
-		// });
-
 		return () => {
 			socket.disconnect();
 		};
 	}, [room_id]);
-
-	function getSenderNicknameByID(id: string) {
-		if (room) {
-			const _person = room.people.find((pers) => pers.id === id);
-			if (_person) return _person.nickname;
-		}
-	}
 
 	function handleBackClick() {
 		history.push("/");
@@ -395,6 +389,7 @@ const ChatRoom = () => {
 								id="myMessage"
 								value={myMessage}
 								placeholder="Type your message..."
+								autoComplete="off"
 								onChange={(event) => setMyMessage(event.target.value)}
 							/>
 							<Submit type="submit">

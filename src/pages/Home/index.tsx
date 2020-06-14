@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, FormEvent } from "react";
 import styled from "styled-components";
 import io from "socket.io-client";
 import { useHistory } from "react-router-dom";
@@ -124,9 +124,7 @@ const Home = () => {
 
 	useEffect(() => {
 		const socket = io("http://localhost:4001");
-
-		// socket.on("all_rooms", setRooms);
-
+		socket.on("rooms_changed", setRooms);
 		return () => {
 			socket.disconnect();
 		};
@@ -151,6 +149,30 @@ const Home = () => {
 		});
 	}
 
+	async function handleSubmit(event: FormEvent) {
+		event.preventDefault();
+
+		if (!nickname) {
+			setErrors({ ...errors, nickname: true });
+			return;
+		}
+
+		if (!roomName) {
+			setErrors({ ...errors, roomName: true });
+			return;
+		}
+
+		api.post("/rooms", { name: roomName }).then((res) => {
+			const { room_id } = res.data;
+			if (room_id) {
+				history.push({
+					pathname: `/${room_id}`,
+					search: `nickname=${nickname}`,
+				});
+			}
+		});
+	}
+
 	return (
 		<StyledHome>
 			<Container>
@@ -170,7 +192,7 @@ const Home = () => {
 						/>
 					</Field>
 					<Rooms data={rooms} onItemClick={handleRoomClick} />
-					<form onSubmit={() => {}}>
+					<form onSubmit={handleSubmit}>
 						<Fieldset>
 							<Field inline error={errors.roomName}>
 								<label htmlFor="room_name">Room name</label>
