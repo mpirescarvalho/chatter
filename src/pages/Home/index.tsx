@@ -123,7 +123,7 @@ const Home = () => {
 	}, []);
 
 	useEffect(() => {
-		const socket = io("http://localhost:4001");
+		const socket = io("https://chatter-backend-server.herokuapp.com");
 		socket.on("rooms_changed", setRooms);
 		return () => {
 			socket.disconnect();
@@ -145,7 +145,7 @@ const Home = () => {
 		}
 		history.push({
 			pathname: `/${room.id}`,
-			search: `nickname=${nickname}`,
+			state: `nickname=${nickname}`,
 		});
 	}
 

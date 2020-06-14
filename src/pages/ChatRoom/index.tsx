@@ -315,7 +315,7 @@ const ChatRoom = () => {
 	}, [room_id, nickname, myID]);
 
 	useEffect(() => {
-		const socket = io("http://localhost:4001");
+		const socket = io("https://chatter-backend-server.herokuapp.com");
 
 		socket.on("connect", () => setMyID(socket.id));
 
