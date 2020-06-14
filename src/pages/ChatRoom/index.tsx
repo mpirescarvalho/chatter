@@ -14,6 +14,7 @@ const Container = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	overflow-x: hidden;
 `;
 
 const Box = styled.div`
@@ -102,6 +103,8 @@ const ContainerMessages = styled.ul`
 	padding: 0 15px;
 	padding-bottom: 5px;
 	display: flex;
+	height: 1px;
+	overflow-y: scroll;
 	flex-direction: column-reverse;
 `;
 
@@ -191,6 +194,7 @@ const Submit = styled.button`
 interface Message {
 	sender_id: string;
 	message: string;
+	nickname?: String;
 }
 
 interface Room {
@@ -232,6 +236,7 @@ const ChatRoom = () => {
 	const { search } = useLocation();
 	const history = useHistory();
 
+	//Fill people colors
 	useEffect(() => {
 		if (room) {
 			let changed = false;
@@ -246,6 +251,22 @@ const ChatRoom = () => {
 			if (changed) setPeopleColors(_peopleColors);
 		}
 	}, [room, peopleColors]);
+
+	//Fill message nicknames
+	useEffect(() => {
+		let changed = false;
+		const _messages = messages.map((message) => {
+			if (!message.nickname) {
+				const _messageNickname = getSenderNicknameByID(message.sender_id);
+				if (_messageNickname) {
+					changed = true;
+					message.nickname = _messageNickname;
+				}
+			}
+			return message;
+		});
+		if (changed) setMessages(_messages);
+	}, [messages, getSenderNicknameByID]);
 
 	useEffect(() => {
 		const match = search.match(/nickname=(.+)/);
@@ -360,7 +381,7 @@ const ChatRoom = () => {
 								<ContainerMessage key={index} owner={message.sender_id === myID}>
 									<MessageBox>
 										<MessageSender color={peopleColors[`${message.sender_id}`]}>
-											<strong>{getSenderNicknameByID(message.sender_id)}</strong>
+											<strong>{message.nickname}</strong>
 										</MessageSender>
 										<MessageContent>{message.message}</MessageContent>
 									</MessageBox>
