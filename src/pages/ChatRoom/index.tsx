@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useHistory } from "react-router-dom";
 import { FiArrowLeft, FiSend } from "react-icons/fi";
 import styled from "styled-components";
-// import io from "socket.io-client";
+import io from "socket.io-client";
 
 import NotFound from "../../components/NotFound";
 
@@ -223,12 +223,11 @@ const ChatRoom = () => {
 	const [nickname, setNickname] = useState<String | undefined>();
 	const [peopleColors, setPeopleColors] = useState<IHash>({});
 	const [messages, setMessages] = useState<Message[]>([]);
+	const [myID, setMyID] = useState<String>();
 
 	const { room_id } = useParams();
 	const { search } = useLocation();
-
-	//TODO: get id from server
-	const myID = "1";
+	const history = useHistory();
 
 	useEffect(() => {
 		if (room) {
@@ -247,44 +246,67 @@ const ChatRoom = () => {
 	useEffect(() => {
 		const match = search.match(/nickname=(.+)/);
 		let nick;
-		if (match) nick = match[1];
+		if (match) nick = decodeURIComponent(match[1]);
 		else nick = prompt("Type your nickname");
-		if (nick) setNickname(nick);
+		if (nick) {
+			setNickname(nick);
+		} else {
+			setLoading(false);
+		}
 	}, [search]);
 
+	//get room information and enter on it
 	useEffect(() => {
-		if (room_id) {
+		if (room_id && nickname && myID) {
 			api
 				.get(`/rooms/${room_id}`)
 				.then((response) => {
-					setRoom(response.data);
-					setLoading(false);
+					api
+						.post("/rooms/people", {
+							id: myID,
+							room_id,
+							nickname,
+						})
+						.then((res) => {
+							setRoom(response.data);
+							setLoading(false);
+						})
+						.catch((_) => setLoading(false));
 				})
 				.catch((_) => setLoading(false));
 		}
-	}, [room_id]);
+	}, [room_id, nickname, myID]);
 
-	// useEffect(() => {
-	// 	const socket = io("http://localhost:4001");
+	useEffect(() => {
+		const socket = io("http://localhost:4001");
 
-	// 	if (nickname) {
-	// 		socket.on(`${room_id}-info`, (room_info: Room) => {
-	// 			setRoom(room_info);
-	// 			setLoading(false);
-	// 		});
-	// 		socket.emit(`${room_id}-enter_room`, nickname);
-	// 	}
+		console.log("conetado ao servidor");
 
-	// 	return () => {
-	// 		socket.disconnect();
-	// 	};
-	// }, [room_id, nickname]);
+		socket.on("connect", () => setMyID(socket.id));
+
+		socket.on(`${room_id}-changed`, setRoom);
+
+		// socket.emit(`${room_id}-enter_room`, nickname);
+
+		// socket.on(`${room_id}-info`, (room_info: Room) => {
+		// 	setRoom(room_info);
+		// 	setLoading(false);
+		// });
+
+		return () => {
+			socket.disconnect();
+		};
+	}, []);
 
 	function getSenderNicknameByID(id: string) {
 		if (room) {
 			const _person = room.people.find((pers) => pers.id === id);
 			if (_person) return _person.nickname;
 		}
+	}
+
+	function handleBackClick() {
+		history.push("/");
 	}
 
 	if (loading) return <h1>Loading...</h1>;
@@ -295,7 +317,7 @@ const ChatRoom = () => {
 		<Container>
 			<Box>
 				<TitleBar>
-					<span>
+					<span onClick={handleBackClick}>
 						<FiArrowLeft />
 					</span>
 					<strong>{room.name}</strong>

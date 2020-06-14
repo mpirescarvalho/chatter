@@ -132,6 +132,7 @@ const Home = () => {
 		};
 	}, []);
 
+	//Remove error hints from inputs after 2 seconds
 	useEffect(() => {
 		const id = setTimeout(() => {
 			setErrors({ nickname: false, roomName: false });
