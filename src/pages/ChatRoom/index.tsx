@@ -222,12 +222,13 @@ const ChatRoom = () => {
 	const [room, setRoom] = useState<Room>();
 	const [nickname, setNickname] = useState<String | undefined>();
 	const [peopleColors, setPeopleColors] = useState<IHash>({});
+	const [messages, setMessages] = useState<Message[]>([]);
 
 	const { room_id } = useParams();
 	const { search } = useLocation();
 
 	//TODO: get id from server
-	const myID = 1;
+	const myID = "1";
 
 	useEffect(() => {
 		if (room) {
@@ -279,6 +280,13 @@ const ChatRoom = () => {
 	// 	};
 	// }, [room_id, nickname]);
 
+	function getSenderNicknameByID(id: string) {
+		if (room) {
+			const _person = room.people.find((pers) => pers.id === id);
+			if (_person) return _person.nickname;
+		}
+	}
+
 	if (loading) return <h1>Loading...</h1>;
 
 	if (!room || !nickname) return <NotFound />;
@@ -303,30 +311,16 @@ const ChatRoom = () => {
 					</PeopleContainer>
 					<Chat>
 						<ContainerMessages>
-							<ContainerMessage owner={true}>
-								<MessageBox>
-									<MessageSender color={peopleColors["1"]}>
-										<strong>Marcelo Carvalo</strong>
-									</MessageSender>
-									<MessageContent>
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-										auctor imperdiet libero non laoreet. Mauris vel mauris nec eros
-										pretium posuere id et ipsum.
-									</MessageContent>
-								</MessageBox>
-							</ContainerMessage>
-							<ContainerMessage owner={false}>
-								<MessageBox>
-									<MessageSender color={peopleColors["1"]}>
-										<strong>Marcelo Carvalo</strong>
-									</MessageSender>
-									<MessageContent>
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam
-										auctor imperdiet libero non laoreet. Mauris vel mauris nec eros
-										pretium posuere id et ipsum.
-									</MessageContent>
-								</MessageBox>
-							</ContainerMessage>
+							{messages.map((message) => (
+								<ContainerMessage owner={message.sender_id === myID}>
+									<MessageBox>
+										<MessageSender color={peopleColors[`${message.sender_id}`]}>
+											<strong>{getSenderNicknameByID(message.sender_id)}</strong>
+										</MessageSender>
+										<MessageContent>{message.message}</MessageContent>
+									</MessageBox>
+								</ContainerMessage>
+							))}
 						</ContainerMessages>
 						<ContainerInput>
 							<Input />
