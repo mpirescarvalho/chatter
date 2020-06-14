@@ -233,7 +233,7 @@ const ChatRoom = () => {
 	const [myMessage, setMyMessage] = useState("");
 
 	const { room_id } = useParams();
-	const { search } = useLocation();
+	const { state } = useLocation();
 	const history = useHistory();
 
 	const getSenderNicknameById = useCallback(
@@ -279,16 +279,18 @@ const ChatRoom = () => {
 	}, [messages, getSenderNicknameById]);
 
 	useEffect(() => {
-		const match = search.match(/nickname=(.+)/);
 		let nick;
-		if (match) nick = decodeURIComponent(match[1]);
-		else nick = prompt("Type your nickname");
+		if (state) {
+			const match = String(state).match(/nickname=(.+)/);
+			if (match) nick = decodeURIComponent(match[1]);
+		}
+		if (!nick) nick = prompt("Type your nickname");
 		if (nick) {
 			setNickname(nick);
 		} else {
 			setLoading(false);
 		}
-	}, [search]);
+	}, [state]);
 
 	//get room information and enter on it
 	useEffect(() => {

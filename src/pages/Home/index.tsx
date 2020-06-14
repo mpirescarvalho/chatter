@@ -167,7 +167,7 @@ const Home = () => {
 			if (room_id) {
 				history.push({
 					pathname: `/${room_id}`,
-					search: `nickname=${nickname}`,
+					state: `nickname=${nickname}`,
 				});
 			}
 		});
