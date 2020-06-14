@@ -231,17 +231,16 @@ const ChatRoom = () => {
 
 	useEffect(() => {
 		if (room) {
-			let _peopleColors: IHash = {};
-			room.people.forEach(
-				(person) =>
-					(_peopleColors[`${person.id}`] =
-						colors[Math.floor(Math.random() * colors.length)])
-			);
+			let _peopleColors = { ...peopleColors };
+			room.people.forEach((person) => {
+				if (!_peopleColors[`${person.id}`]) {
+					_peopleColors[`${person.id}`] =
+						colors[Math.floor(Math.random() * colors.length)];
+				}
+			});
 			setPeopleColors(_peopleColors);
-		} else {
-			setPeopleColors({});
 		}
-	}, [room]);
+	}, [room, peopleColors]);
 
 	useEffect(() => {
 		const match = search.match(/nickname=(.+)/);
@@ -279,8 +278,6 @@ const ChatRoom = () => {
 
 	useEffect(() => {
 		const socket = io("http://localhost:4001");
-
-		console.log("conetado ao servidor");
 
 		socket.on("connect", () => setMyID(socket.id));
 
