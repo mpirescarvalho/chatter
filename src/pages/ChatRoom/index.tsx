@@ -3,6 +3,7 @@ import { useParams, useLocation, useHistory } from "react-router-dom";
 import { FiArrowLeft, FiSend } from "react-icons/fi";
 import styled from "styled-components";
 import io from "socket.io-client";
+import MoonLoader from "react-spinners/MoonLoader";
 
 import NotFound from "../../components/NotFound";
 
@@ -191,6 +192,14 @@ const Submit = styled.button`
 	}
 `;
 
+const Center = styled.div`
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+`;
+
 interface Message {
 	sender_id: string;
 	message: string;
@@ -349,7 +358,13 @@ const ChatRoom = () => {
 			});
 	}
 
-	if (loading) return <h1>Loading...</h1>;
+	if (loading) {
+		return (
+			<Center>
+				<MoonLoader color="#34cb79" />
+			</Center>
+		);
+	}
 
 	if (!room || !nickname) return <NotFound />;
 
