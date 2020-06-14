@@ -114,7 +114,7 @@ const ContainerMessage = styled.li<ContainerMessageProps>`
 	list-style-type: none;
 	display: flex;
 	flex-direction: row;
-	margin-top: 30px;
+	margin-top: 5px;
 	justify-content: ${(props) => (props.owner ? "flex-end" : "flex-start")};
 `;
 
@@ -292,7 +292,7 @@ const ChatRoom = () => {
 		socket.on(`${room_id}-new_message`, (message: Message) => {
 			setMessages((oldMessages) => {
 				const _messages = [...oldMessages];
-				_messages.push(message);
+				_messages.unshift(message);
 				return _messages;
 			});
 		});
